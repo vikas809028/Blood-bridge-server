@@ -23,16 +23,20 @@ const userInventorySchema = new mongoose.Schema(
     },
     organisation: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "users", // Only if donated to org
+      ref: "users",
     },
     hospital: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "users", // Only if received from hospital
+      ref: "users",
     },
     email: {
       type: String,
       required: [true, "User email is required"],
     },
+    isDonated: { type: Boolean },
+    isRecievedByHos: { type: Boolean },
+    isCollectedByorg: { type: Boolean },
+    certificatedotp: { type: Number },
   },
   { timestamps: true }
 );

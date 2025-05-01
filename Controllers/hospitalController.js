@@ -9,8 +9,9 @@ const getOrgBloodStock = async (req, res) => {
     const addedToOrg = await userInventoryModel.aggregate([
       {
         $match: {
-          inventoryType: "in",
+          inventoryType: "out",
           organisation: { $ne: null },
+          isCollectedByorg: true,
         },
       },
       {
@@ -205,7 +206,7 @@ const createHospitalInventory = async (req, res) => {
 
 const getConsumerList = async (req, res) => {
   try {
-    const { id } = req.body; // Hospital ID
+    const { id } = req.body;
 
     if (!id) {
       return res.status(400).json({
@@ -214,11 +215,10 @@ const getConsumerList = async (req, res) => {
       });
     }
 
-    // Find all "out" records for this hospital
     const records = await userInventoryModel
       .find({
         hospital: id,
-        inventoryType: "out",
+        inventoryType: "in",
       })
       .sort({ createdAt: -1 });
 
@@ -258,9 +258,75 @@ const getConsumerList = async (req, res) => {
   }
 };
 
-const getBloodAvailability = async (req, res) => {
+
+
+const getOrders = async (req, res) => {
   try {
     const { id } = req.body; // Hospital ID
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Hospital ID is required",
+      });
+    }
+
+    const records = await hospitalInventoryModel.aggregate([
+      {
+        $match: {
+          hospital: new mongoose.Types.ObjectId(id),
+          inventoryType: "in"
+        }
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "organisation",
+          foreignField: "_id",
+          as: "organisationDetails"
+        }
+      },
+      {
+        $unwind: "$organisationDetails"
+      },
+      {
+        $project: {
+          _id: 1,
+          bloodGroup: 1,
+          quantity: 1,
+          createdAt: 1,
+          organisation: {
+            _id: "$organisationDetails._id",
+            name: "$organisationDetails.organisationName",
+            email: "$organisationDetails.email",
+            phone: "$organisationDetails.phone",
+            address: "$organisationDetails.address"
+          }
+        }
+      },
+      {
+        $sort: { createdAt: -1 }
+      }
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      message: "Orders fetched successfully with organization details",
+      data: records,
+    });
+  } catch (error) {
+    console.error("Error in getOrders:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching orders",
+      error: error.message,
+    });
+  }
+};
+
+const getBloodAvailability = async (req, res) => {
+  try {
+    const { id } = req.body;
 
     if (!id) {
       return res.status(400).json({
@@ -307,7 +373,7 @@ const getBloodAvailability = async (req, res) => {
             $match: {
               hospital: new mongoose.Types.ObjectId(id),
               bloodGroup,
-              inventoryType: "out",
+              inventoryType: "in",
             },
           },
           {
@@ -317,6 +383,9 @@ const getBloodAvailability = async (req, res) => {
             },
           },
         ]);
+
+        console.log(given);
+        
 
         const totalReceived = received[0]?.total || 0;
         const totalGiven = given[0]?.total || 0;
@@ -349,4 +418,10 @@ const getBloodAvailability = async (req, res) => {
   }
 };
 
-module.exports = { getOrgBloodStock, createHospitalInventory, getConsumerList,getBloodAvailability };
+module.exports = {
+  getOrgBloodStock,
+  createHospitalInventory,
+  getConsumerList,
+  getBloodAvailability,
+  getOrders
+};

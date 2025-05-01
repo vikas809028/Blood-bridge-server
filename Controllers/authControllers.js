@@ -1,25 +1,43 @@
-
 const userModel = require("../models/userModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { sendEmail } = require("../utils/sendMail");
 
 const registerController = async (req, res) => {
   try {
+
     const exisitingUser = await userModel.findOne({ email: req.body.email });
-    
+
     if (exisitingUser) {
       return res.status(500).send({
         success: false,
         message: "User ALready exists",
       });
     }
-    //hash password
+
+  
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(req.body.password, salt);
     req.body.password = hashedPassword;
-    //rest data
+
+
     const user = new userModel(req.body);
+    sendEmail(
+      req.body.email,
+      "Welcome to Blood Bridge ❤️",
+      `
+        <h2>Welcome to Blood Bridge, ${req.body.name || "Donor"}!</h2>
+        <p>Thank you for registering and becoming a part of our life-saving community.</p>
+        <p>With your help, we’re bridging the gap between those in need and those who can help. 💉🩸</p>
+        <p>Explore our platform to donate or request blood, connect with hospitals, and make a real difference.</p>
+        <br/>
+        <p><strong>Let’s save lives, one drop at a time!</strong></p>
+        <p>Team Blood Bridge</p>
+      `
+    );
+
     await user.save();
+    
     return res.status(201).send({
       success: true,
       message: "User Registerd Successfully",

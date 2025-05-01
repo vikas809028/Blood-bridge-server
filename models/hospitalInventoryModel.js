@@ -33,6 +33,8 @@ const hospitalInventorySchema = new mongoose.Schema(
       type: String,
       required: [true, "Hospital email is required"],
     },
+    isDonated: { type: Boolean },
+    isRecieved: { type: Boolean },
   },
   { timestamps: true }
 );

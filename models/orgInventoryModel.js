@@ -33,6 +33,9 @@ const orgInventorySchema = new mongoose.Schema(
       type: String,
       required: [true, "Email is required"],
     },
+    isDonated: { type: Boolean },
+    isRecieved: { type: Boolean },
+    
   },
   { timestamps: true }
 );
