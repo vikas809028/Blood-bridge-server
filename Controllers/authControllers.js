@@ -5,7 +5,6 @@ const { sendEmail } = require("../utils/sendMail");
 
 const registerController = async (req, res) => {
   try {
-
     const exisitingUser = await userModel.findOne({ email: req.body.email });
 
     if (exisitingUser) {
@@ -37,7 +36,7 @@ const registerController = async (req, res) => {
     );
 
     await user.save();
-    
+
     return res.status(201).send({
       success: true,
       message: "User Registerd Successfully",
@@ -56,33 +55,39 @@ const registerController = async (req, res) => {
 const loginController = async (req, res) => {
   try {
     const user = await userModel.findOne({ email: req.body.email });
+
     if (!user) {
       return res.status(404).send({
         success: false,
         message: "Invalid Credentials",
       });
     }
-    //check role
+
+    // Check role
     if (user.role !== req.body.role) {
-      return res.status(500).send({
+      return res.status(403).send({
         success: false,
-        message: "role dosent match",
+        message: "Role doesn't match",
       });
     }
-    //compare password
+
+    // Compare password
     const comparePassword = await bcrypt.compare(
       req.body.password,
       user.password
     );
     if (!comparePassword) {
-      return res.status(500).send({
+      return res.status(401).send({
         success: false,
         message: "Invalid Credentials",
       });
     }
+
+    // Generate token
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
+
     return res.status(200).send({
       success: true,
       message: "Login Successfully",
@@ -98,6 +103,7 @@ const loginController = async (req, res) => {
     });
   }
 };
+
 
 const currentUserController = async (req, res) => {
   try {

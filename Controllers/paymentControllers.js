@@ -222,24 +222,19 @@ const verify_payment_hospital = async (req, res) => {
       .map(([_, name]) => name);
 
     if (missingFields.length > 0) {
-      console.log("Missing required fields:", missingFields);
       return res.status(400).json({
         success: false,
         message: `Missing required fields: ${missingFields.join(", ")}`,
       });
     }
 
-    // Validate quantity
     if (isNaN(quantity) || quantity <= 0) {
-      console.log("Invalid quantity:", quantity);
       return res.status(400).json({
         success: false,
         message: "Quantity must be a positive number",
       });
     }
 
-    // Verify payment signature
-    console.log("Verifying payment signature...");
     if (!process.env.RAZORPAY_SECRET) {
       throw new Error("Razorpay secret key not configured");
     }
@@ -250,31 +245,20 @@ const verify_payment_hospital = async (req, res) => {
       .digest("hex");
 
     if (generatedSignature !== razorpay_signature) {
-      console.log("Signature mismatch:", {
-        received: razorpay_signature,
-        generated: generatedSignature,
-      });
+
       return res.status(400).json({
         success: false,
         message: "Invalid payment signature",
       });
     }
-    console.log("Payment signature verified");
 
-    // 1. Validate hospital exists
-    console.log(`Fetching hospital: ${hospitalId}`);
     const hospital = await User.findById(hospitalId);
     if (!hospital || hospital.role !== "hospital") {
-      console.log("Invalid hospital:", hospitalId);
       throw new Error("Hospital not found or invalid");
     }
-    console.log(`Hospital validated: ${hospital.hospitalName}`);
 
-    // 2. Validate organization exists
-    console.log(`Fetching organization: ${organisationId}`);
     const organization = await User.findById(organisationId);
     if (!organization || organization.role !== "organisation") {
-      console.log("Invalid organization:", organisationId);
       throw new Error("Organization not found or invalid");
     }
 
@@ -305,7 +289,6 @@ const verify_payment_hospital = async (req, res) => {
       toHospital: hospital._id,
       status: "completed",
     });
-    console.log("Payment record created:", paymentRecord._id);
 
     return res.status(200).json({
       success: true,

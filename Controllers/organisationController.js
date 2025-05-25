@@ -245,8 +245,6 @@ const getDonations = async (req, res) => {
       },
     ]);
 
-    console.log(`Processed ${donors.length} donor records`);
-
     return res.status(200).send({
       success: true,
       message: "Donors fetched successfully",
@@ -467,9 +465,6 @@ const collectBlood = async (req, res) => {
       hour12: true,
     });
 
-    console.log("formattedDate", formattedDate);
-
-    // Now send the email
     await sendEmail(
       userDonation.email,
       "Blood Donation Collection Confirmation 🩸",

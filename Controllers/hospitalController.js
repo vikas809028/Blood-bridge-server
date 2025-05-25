@@ -384,9 +384,7 @@ const getBloodAvailability = async (req, res) => {
           },
         ]);
 
-        console.log(given);
-        
-
+      
         const totalReceived = received[0]?.total || 0;
         const totalGiven = given[0]?.total || 0;
         const available = totalReceived - totalGiven;

@@ -19,6 +19,10 @@ app.use(express.json());
 app.use(cors());
 app.use(morgan("dev"));
 
+app.get("/", (req, res) => {
+  res.send("server is running");
+});
+
 app.use("/api/v1/auth", require("./routes/authRoutes"));
 app.use("/api/v1/admin", require("./routes/AdminRoute"));
 app.use("/api/v1/donor", require("./routes/donorRoute"));

@@ -322,7 +322,6 @@ const getOrders = async (req, res) => {
 
         if (record.hospital) {
           const orgUser = await userModel.findById(record.hospital);
-          console.log(orgUser);
           
           if (orgUser?.role === "hospital") {
             hospitalName = orgUser.hospitalName;
